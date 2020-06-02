@@ -30,44 +30,49 @@ public class ApplicationAPI {
 	@Autowired
 	private Environment environment;
 
-	static Logger logger = LogManager.getLogger(ApartmentAPI.class.getName());
+	static Logger logger = LogManager.getLogger(ApartmentAPI.class);
 
 	@GetMapping(value = "approveApplication/{appId}")
-	public ResponseEntity<String> approveApplication(@PathVariable("appId") Integer appId) throws Exception{
-		logger.info("Approving application, application Id: " + appId);
+	public ResponseEntity<String> approveApplication(@PathVariable("appId") Integer appId) {
+		try {
+			logger.info("Approving application, application Id: " + appId);
 
-		applicationService.approveApplication(appId);
-		String message = "Application approved successfully, application Id: " + appId;
-		logger.info(message);
-		return new ResponseEntity<String>(message, HttpStatus.ACCEPTED);
+			applicationService.approveApplication(appId);
+			String message = "Application approved successfully, application Id: " + appId;
+
+			logger.info(message);
+			return new ResponseEntity<String>(message, HttpStatus.ACCEPTED);
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, environment.getProperty(e.getMessage()));
+		}
 	}
 
 	@GetMapping(value = "allApp")
-	public ResponseEntity<List<Application>> allApp() throws Exception{
-		List<Application> allAppList = applicationService.getAllApplications();
-		logger.info("Returning List of All Applications");
-		return new ResponseEntity<List<Application>>(allAppList, HttpStatus.OK);
+	public ResponseEntity<List<Application>> allApp() throws Exception {
+		try {
+			return new ResponseEntity<List<Application>>(applicationService.getAllApplications(), HttpStatus.OK);
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, environment.getProperty(e.getMessage()));
+		}
 	}
 
 	@PostMapping(value = "newApp")
 	public ResponseEntity<String> newApp(@RequestBody Application app) throws Exception {
-		String registerApp = applicationService.registerNewApp(app);
-		logger.info("New Application Added");
-		return new ResponseEntity<String>(registerApp, HttpStatus.OK);
-	}
-	
-	@GetMapping(value = "applicationCheck/{email}/check")
-	public ResponseEntity<List<Integer>> applicationCheck(@PathVariable("email") String email) throws Exception{
-		List<Integer> appList = applicationService.applicationCheck(email);
-		logger.info("Returning Applications for: " + email);
-		return new ResponseEntity<List<Integer>>(appList, HttpStatus.OK);
+		try {
+			String registerApp = applicationService.registerNewApp(app);
+			return new ResponseEntity<String>(registerApp, HttpStatus.OK);
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, environment.getProperty(e.getMessage()));
+		}
 	}
 	
 	@GetMapping(value = "allMyApp/{email}/check")
 	public ResponseEntity<List<Application>> allMyApp(@PathVariable("email") String email) throws Exception {
-		List<Application> allMyApp = applicationService.getAllMyApplications(email);
-		logger.info("Returning All Applications for: " + email);
-		return new ResponseEntity<List<Application>>(allMyApp, HttpStatus.OK);
+		try {
+			return new ResponseEntity<List<Application>>(applicationService.getAllMyApplications(email), HttpStatus.OK);
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, environment.getProperty(e.getMessage()));
+		}
 	}
 
 }

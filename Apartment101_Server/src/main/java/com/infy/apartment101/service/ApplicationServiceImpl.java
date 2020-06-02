@@ -33,8 +33,6 @@ public class ApplicationServiceImpl implements ApplicationService {
 	@Override
 	public String registerNewApp(Application app) throws Exception {
 		String add = applicationDAO.registerNewApp(app);
-		if(add.equals(""))
-			throw new Exception("ApplicationService.APPLICATION_DISAPPROVED");
 		return add;
 	}
 	

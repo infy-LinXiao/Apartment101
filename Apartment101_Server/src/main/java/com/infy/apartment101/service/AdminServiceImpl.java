@@ -36,7 +36,7 @@ public class AdminServiceImpl implements AdminService {
 		}
 
 		else {
-			throw new UnauthorizedException("AdminService.EMAIL_ID_ALREADY_IN_USE");
+			throw new Exception("AdminService.EMAIL_ID_ALREADY_IN_USE");
 		}
 
 		return registeredWithEmailId;
@@ -57,9 +57,9 @@ public class AdminServiceImpl implements AdminService {
 			if (hashedPassword.equals(passwordFromDB)) {
 				admin = adminDAO.getAdminByEmailId(email);
 			} else
-				throw new UnauthorizedException("AdminService.INVALID_CREDENTIALS");
+				throw new Exception("AdminService.INVALID_CREDENTIALS");
 		} else
-			throw new UnauthorizedException("AdminService.INVALID_CREDENTIALS");
+			throw new Exception("AdminService.INVALID_CREDENTIALS");
 
 		return admin;
 	}
