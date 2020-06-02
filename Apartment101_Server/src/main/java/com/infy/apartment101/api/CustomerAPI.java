@@ -26,29 +26,39 @@ public class CustomerAPI {
 	@Autowired
 	private Environment environment;
 
-	static Logger logger = LogManager.getLogger(CustomerAPI.class.getName());
+	static Logger logger = LogManager.getLogger(CustomerAPI.class);
 
 	@PostMapping(value = "/registerCustomer")
 	public ResponseEntity<String> registerCustomer(@RequestBody User customer) throws Exception {
-		
-		logger.info("CUSTOMER TRYING TO REGISTER. CUSTOMER EMAIL ID: " + customer.getEmail());
+		try {
+			logger.info("CUSTOMER TRYING TO REGISTER. CUSTOMER EMAIL ID: " + customer.getEmail());
 
-		String registeredWithEmailID = customerService.registerNewCustomer(customer);
-		registeredWithEmailID = environment.getProperty("CustomerAPI.CUSTOMER_REGISTRATION_SUCCESS").toString() + registeredWithEmailID;
-		return new ResponseEntity<String>(registeredWithEmailID, HttpStatus.OK);
+			String registeredWithEmailID = customerService.registerNewCustomer(customer);
+			registeredWithEmailID = environment.getProperty("CustomerAPI.CUSTOMER_REGISTRATION_SUCCESS").toString()
+					+ registeredWithEmailID;
+			return new ResponseEntity<String>(registeredWithEmailID, HttpStatus.OK);
+
+		} catch (Exception e) {
+			if (e.getMessage().contains("Validator")) {
+				throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, environment.getProperty(e.getMessage()));
+			}
+			throw new ResponseStatusException(HttpStatus.CONFLICT, environment.getProperty(e.getMessage()));
+		}
 	}
 
 	@PostMapping(value = "/customerLogin")
 	public ResponseEntity<User> authenticateCustomer(@RequestBody User customer) throws Exception {
-		
-		logger.info("CUSTOMER TRYING TO LOGIN, VALIDATING CREDENTIALS. CUSTOMER EMAIL ID: " + customer.getEmail());
+		try {
+			logger.info("CUSTOMER TRYING TO LOGIN, VALIDATING CREDENTIALS. CUSTOMER EMAIL ID: " + customer.getEmail());
 
-		User customerfromDB = customerService.authenticateCustomer(customer.getEmail(), customer.getPassword());
+			User customerfromDB = customerService.authenticateCustomer(customer.getEmail(), customer.getPassword());
 
-		logger.info("CUSTOMER LOGIN SUCCESS, CUSTOMER EMAIL : " + customerfromDB.getEmail());
+			logger.info("CUSTOMER LOGIN SUCCESS, CUSTOMER EMAIL : " + customerfromDB.getEmail());
 
-		return new ResponseEntity<User>(customerfromDB, HttpStatus.OK);
-
+			return new ResponseEntity<User>(customerfromDB, HttpStatus.OK);
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, environment.getProperty(e.getMessage()));
+		}
 	}
 
 }

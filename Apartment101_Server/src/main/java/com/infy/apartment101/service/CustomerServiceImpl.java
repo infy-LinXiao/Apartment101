@@ -23,7 +23,7 @@ public class CustomerServiceImpl implements CustomerService {
 
 			customer = customerDAO.getCustomerByEmailId(customerEmailIdFromDAO);
 		} else
-			throw new UnauthorizedException("CustomerService.INVALID_CREDENTIALS");
+			throw new Exception("CustomerService.INVALID_CREDENTIALS");
 
 		return customer;
 
@@ -48,7 +48,7 @@ public class CustomerServiceImpl implements CustomerService {
 		}
 
 		else {
-			throw new UnauthorizedException("CustomerService.EMAIL_ID_ALREADY_IN_USE");
+			throw new Exception("CustomerService.EMAIL_ID_ALREADY_IN_USE");
 		}
 
 		return registeredWithEmailId;

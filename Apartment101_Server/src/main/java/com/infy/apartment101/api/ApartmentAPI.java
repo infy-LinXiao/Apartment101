@@ -31,61 +31,87 @@ public class ApartmentAPI {
 	@Autowired
 	private Environment environment;
 
-	static Logger logger = LogManager.getLogger(ApartmentAPI.class.getName());
+	static Logger logger = LogManager.getLogger(ApartmentAPI.class);
 
 	@PostMapping(value = "addApartment")
 	public ResponseEntity<String> addApartment(@RequestBody Apartment apt) throws Exception {
+		try {
+			logger.info("Adding apartment, apartment type: " + apt.getAptType() + ", apartment flooring: "
+					+ apt.getTypeOfFlooring() + ", apartment level: " + apt.getAptLevel());
 
-		logger.info("Adding apartment, apartment type: " + apt.getAptType() + ", apartment flooring: " + apt.getTypeOfFlooring() + ", apartment level: " + apt.getAptLevel());
+			Integer result = apartmentService.addApt(apt);
+			String message = environment.getProperty("ApartmentAPI.APARTMENT_ADDED_SUCCESS") + result;
 
-		Integer result = apartmentService.addApt(apt);
-		String message = environment.getProperty("ApartmentAPI.APARTMENT_ADDED_SUCCESS") + result;
-
-		logger.info(message);
-		return new ResponseEntity<String>(message, HttpStatus.OK);
+			logger.info(message);
+			return new ResponseEntity<String>(message, HttpStatus.OK);
+		} catch (Exception e) {
+			if (e.getMessage().contains("Validator"))
+				throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, environment.getProperty(e.getMessage()));
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, environment.getProperty(e.getMessage()));
+		}
 	}
 
 	@GetMapping(value = "getAllApts")
-	public ResponseEntity<List<Apartment>> getAllApts() throws Exception {
-		logger.info("Getting all apartments");
+	public ResponseEntity<List<Apartment>> getAllApts() {
+		try {
+			logger.info("Getting all apartments");
 
-		List<Apartment> aList = apartmentService.getAllApts();
+			List<Apartment> aList = apartmentService.getAllApts().collect(Collectors.toList());
 
-		logger.info(environment.getProperty("ApartmentAPI.GET_ALL_APARTMENTS_SUCCESS"));
-		return new ResponseEntity<List<Apartment>>(aList, HttpStatus.OK);
-
+			logger.info(environment.getProperty("ApartmentAPI.GET_ALL_APARTMENTS_SUCCESS"));
+			return new ResponseEntity<List<Apartment>>(aList, HttpStatus.OK);
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, environment.getProperty(e.getMessage()));
+		}
 	}
 
 	@GetMapping(value = "getAptByAptNo/{aptNo}")
-	public ResponseEntity<Apartment> getAptByAptNo(@PathVariable("aptNo") Integer aptNo) throws Exception {
-		logger.info("Obtaining apartment information, apartment number: " + aptNo);
+	public ResponseEntity<Apartment> getAptByAptNo(@PathVariable("aptNo") Integer aptNo) {
+		try {
+			logger.info("Obtaining apartment information, apartment number: " + aptNo);
 
-		Apartment a = apartmentService.getAptByAptNo(aptNo);
+			Apartment a = apartmentService.getAptByAptNo(aptNo);
 
-		logger.info("Aparment information obtained, apartment number: " + a.getAptNo() + ", apartment type: " + a.getAptType());
+			logger.info("Aparment information obtained, apartment number: " + a.getAptNo() + ", apartment type: "
+					+ a.getAptType());
 
-		return new ResponseEntity<Apartment>(a, HttpStatus.OK);
+			return new ResponseEntity<Apartment>(a, HttpStatus.OK);
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, environment.getProperty(e.getMessage()));
+		}
 	}
 
 	@GetMapping(value = "modifyAptAvailability/{aptNo}/{availability}")
-	public ResponseEntity<String> checkAptAvailability(@PathVariable("aptNo") Integer aptNo, @PathVariable("availability") Integer availability) throws Exception {
-		logger.info("Modifing apartment availability, apartment number: " + aptNo);
+	public ResponseEntity<String> checkAptAvailability(@PathVariable("aptNo") Integer aptNo,
+			@PathVariable("availability") Integer availability) throws Exception {
+		try {
+			logger.info("Modifing apartment availability, apartment number: " + aptNo);
 
-		Integer result = apartmentService.modifyAvailability(aptNo, availability);
-		String rStr = (result == 0) ? "unavailable" : "available";
-		String message = "Apartment availability modified successfully, apartment number: " + aptNo
-				+ ", apartment availability: " + rStr;
+			Integer result = apartmentService.modifyAvailability(aptNo, availability);
+			String rStr = (result == 0) ? "unavailable" : "available";
+			String message = "Apartment availability modified successfully, apartment number: " + aptNo
+					+ ", apartment availability: " + rStr;
 
-		logger.info(message);
-		return new ResponseEntity<String>(message, HttpStatus.OK);
-
+			logger.info(message);
+			return new ResponseEntity<String>(message, HttpStatus.OK);
+		} catch (Exception e) {
+			if (e.getMessage().contains("Validator"))
+				throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, environment.getProperty(e.getMessage()));
+			throw new ResponseStatusException(HttpStatus.PRECONDITION_FAILED, environment.getProperty(e.getMessage()));
+		}
 	}
 
+	/*
+	 * http://localhost:8080/Apartment101_Server/ApartmentAPI/getApts/ Returns
+	 * All Available Apartments
+	 */
 	@GetMapping(value = "getApts")
-	public ResponseEntity<List<Apartment>> getApts() throws Exception {
-		List<Apartment> aptList = apartmentService.getApts();
-		logger.info("Return all Apartments");
-		return new ResponseEntity<List<Apartment>>(aptList, HttpStatus.OK);
+	public ResponseEntity<List<Apartment>> getApts() {
+		try {
+			return new ResponseEntity<List<Apartment>>(apartmentService.getApts(), HttpStatus.OK);
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, environment.getProperty(e.getMessage()));
+		}
 	}
 
 }
